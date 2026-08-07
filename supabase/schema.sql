@@ -10,8 +10,14 @@ create table opportunities (
   category text not null check (category in ('Scholarship', 'Internship', 'Event', 'Competition', 'Club')),
   tags text not null, -- space-separated keywords used for matching
   source_url text,    -- where this was found (must be a publicly posted page)
-  deadline date not null,
-  created_at timestamp with time zone default now()
+  deadline date,       -- registration/application cutoff. NULL for ongoing opportunities.
+  is_ongoing boolean not null default false, -- true = rolling enrollment, no registration cutoff
+  end_date date,        -- when the actual program/opportunity itself ends (not the registration deadline). Mainly used for ongoing opportunities so we still know when to drop them.
+  created_at timestamp with time zone default now(),
+  -- Every opportunity needs SOME way to know when it's no longer relevant:
+  -- either a registration deadline, or ongoing + an end date, or ongoing with
+  -- no end date at all (indefinitely open).
+  check (deadline is not null or is_ongoing = true)
 );
 
 -- Which opportunities a logged-in user has saved
@@ -44,3 +50,12 @@ create policy "Users can save their own opportunities"
 create policy "Users can remove their own saved opportunities"
   on saved_opportunities for delete
   using (auth.uid() = user_id);
+
+-- Base-level table grants. RLS policies above only restrict WHICH rows a
+-- role can see - the role still needs baseline permission to touch the
+-- table at all. If "Automatically expose new tables" was left unchecked
+-- when creating the Supabase project (recommended), these grants are
+-- required, otherwise every query fails with "permission denied" before
+-- RLS is even evaluated.
+grant select on public.opportunities to anon, authenticated;
+grant select, insert, delete on public.saved_opportunities to authenticated;

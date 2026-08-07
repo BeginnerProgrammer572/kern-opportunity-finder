@@ -108,16 +108,26 @@ export default function Home() {
 
       <div className="board">
         {filtered.map(o => {
-          const days = daysUntil(o.deadline);
           const isSaved = savedIds.has(o.id);
           return (
             <div className="card" key={o.id}>
               <span className={`card-cat cat-${o.category}`}>{o.category}</span>
               <h3>{o.title}</h3>
               <p>{o.description}</p>
-              <div className={`card-deadline ${days <= 7 ? 'soon' : ''}`}>
-                {days} day{days === 1 ? '' : 's'} left to register
-              </div>
+              {o.is_ongoing ? (
+                <div className="card-deadline">
+                  Ongoing enrollment{o.end_date ? ` — runs through ${o.end_date}` : ''}
+                </div>
+              ) : (
+                (() => {
+                  const days = daysUntil(o.deadline);
+                  return (
+                    <div className={`card-deadline ${days <= 7 ? 'soon' : ''}`}>
+                      {days} day{days === 1 ? '' : 's'} left to register
+                    </div>
+                  );
+                })()
+              )}
               <button className="save-btn" onClick={() => toggleSave(o.id)}>
                 {isSaved ? 'Saved' : 'Save for later'}
               </button>
