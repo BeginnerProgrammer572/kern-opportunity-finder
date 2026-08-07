@@ -11,11 +11,45 @@ const QUICK_TAGS = [
   { label: 'volunteering', value: 'community service volunteering' },
 ];
 
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="4 13 9 18 20 6" />
+    </svg>
+  );
+}
+function ClockIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <polyline points="12 7 12 12 16 14" />
+    </svg>
+  );
+}
+function RefreshIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 11a8 8 0 1 0-2.6 6" />
+      <polyline points="20 4 20 11 13 11" />
+    </svg>
+  );
+}
+
+const CAT_COLORS = {
+  All: 'var(--ink)',
+  Scholarship: 'var(--plum)',
+  Internship: 'var(--gold-deep)',
+  Event: 'var(--teal)',
+  Competition: 'var(--slate)',
+  Club: 'var(--umber)',
+};
+
 export default function Home() {
   const [interests, setInterests] = useState('');
   const [results, setResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [activeCat, setActiveCat] = useState('All');
+  const [activeQuickTag, setActiveQuickTag] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [user, setUser] = useState(null);
@@ -30,9 +64,13 @@ export default function Home() {
   }, []);
 
   async function handleFind(overrideInterests) {
-    const query = overrideInterests !== undefined ? overrideInterests : interests;
-    setLoading(true);
+    const query = (overrideInterests !== undefined ? overrideInterests : interests).trim();
     setError('');
+    if (!query) {
+      setError("Type what you're into, or tap a quick tag, before searching.");
+      return;
+    }
+    setLoading(true);
     try {
       const res = await fetch('/api/match', {
         method: 'POST',
@@ -56,6 +94,7 @@ export default function Home() {
 
   function handleQuickTag(tag) {
     setInterests(tag.label);
+    setActiveQuickTag(tag.label);
     handleFind(tag.value);
   }
 
@@ -105,23 +144,28 @@ export default function Home() {
         <textarea
           id="interests"
           value={interests}
-          onChange={(e) => setInterests(e.target.value)}
+          onChange={(e) => { setInterests(e.target.value); setActiveQuickTag(null); }}
           placeholder="e.g. robotics, coding, business, community service, art..."
         />
         <div className="quick-tags">
-          {QUICK_TAGS.map(tag => (
-            <button
-              key={tag.label}
-              type="button"
-              className="quick-tag"
-              onClick={() => handleQuickTag(tag)}
-              disabled={loading}
-            >
-              {tag.label}
-            </button>
-          ))}
+          {QUICK_TAGS.map(tag => {
+            const isSelected = tag.label === activeQuickTag;
+            return (
+              <button
+                key={tag.label}
+                type="button"
+                className={`quick-tag ${isSelected ? 'selected' : ''}`}
+                aria-pressed={isSelected}
+                onClick={() => handleQuickTag(tag)}
+                disabled={loading}
+              >
+                {isSelected && <span className="quick-tag-check" aria-hidden="true"><CheckIcon /></span>}
+                {tag.label}
+              </button>
+            );
+          })}
         </div>
-        <button className="find-btn" onClick={() => handleFind()} disabled={loading}>
+        <button className="find-btn" onClick={() => handleFind()} disabled={loading || !interests.trim()}>
           {loading && <span className="spinner" aria-hidden="true" />}
           {loading ? 'Searching...' : 'Find Opportunities'}
         </button>
@@ -134,8 +178,11 @@ export default function Home() {
             <button
               key={c}
               className={`filter-chip ${c === activeCat ? 'active' : ''}`}
+              style={{ '--chip-color': CAT_COLORS[c] }}
+              aria-pressed={c === activeCat}
               onClick={() => setActiveCat(c)}
             >
+              <span className="filter-chip-dot" aria-hidden="true" />
               {c} <span className="chip-count">({categoryCounts[c]})</span>
             </button>
           ))}
@@ -159,7 +206,7 @@ export default function Home() {
               <p>{o.description}</p>
               {o.is_ongoing ? (
                 <div className="card-deadline ongoing">
-                  <span className="deadline-icon" aria-hidden="true">&#8635;</span>
+                  <span className="deadline-icon" aria-hidden="true"><RefreshIcon /></span>
                   Ongoing enrollment{o.end_date ? ` — runs through ${o.end_date}` : ''}
                 </div>
               ) : (
@@ -167,7 +214,7 @@ export default function Home() {
                   const days = daysUntil(o.deadline);
                   return (
                     <div className={`card-deadline ${days <= 7 ? 'soon' : ''}`}>
-                      <span className="deadline-icon" aria-hidden="true">&#9200;</span>
+                      <span className="deadline-icon" aria-hidden="true"><ClockIcon /></span>
                       {days} day{days === 1 ? '' : 's'} left to register
                     </div>
                   );
