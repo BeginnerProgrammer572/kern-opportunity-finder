@@ -17,13 +17,15 @@ export default async function handler(req, res) {
   }
 
   // --- TODO ---
-  // 1. Call Claude with web search, scoped to our approved source list
-  //    (school sites, nonprofits, community orgs - see abstract for the
-  //    exact sourcing rule we committed to).
+  // 1. Call Gemini (with Google Search grounding enabled) scoped to our
+  //    approved source list (school sites, nonprofits, community orgs -
+  //    see abstract for the exact sourcing rule we committed to).
   // 2. Have it return structured opportunities: title, description,
   //    category, tags, deadline, source_url.
   // 3. Upsert those into the "opportunities" table in Supabase.
   // 4. Delete/flag any existing rows whose deadline has already passed.
+  // Note: this runs on a schedule (not per-visitor), so keep it weekly as
+  // planned - more frequent runs will burn through the free daily quota fast.
 
   res.status(200).json({ status: 'not yet implemented' });
 }

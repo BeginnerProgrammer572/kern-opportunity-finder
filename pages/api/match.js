@@ -1,6 +1,6 @@
 // API route: takes a student's interests and returns matched opportunities.
 // For the demo/first pass, this uses simple keyword matching (see
-// lib/mockMatch.js). Swap in the real Claude call when ready - see the
+// lib/mockMatch.js). Swap in the real Gemini call when ready - see the
 // commented block below for where that goes.
 
 import { isRateLimited } from '../../lib/rateLimit';
@@ -26,20 +26,18 @@ export default async function handler(req, res) {
   const results = await matchOpportunities(interests);
 
   // --- TODO: swap in real AI matching once ready ---
-  // import Anthropic from '@anthropic-ai/sdk';
-  // const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  // const message = await anthropic.messages.create({
-  //   model: 'claude-sonnet-4-6',
-  //   max_tokens: 1024,
-  //   messages: [{
-  //     role: 'user',
-  //     content: `Given these opportunities: ${JSON.stringify(opportunities)},
-  //       rank the ones that best match this student's interests: "${interests}".
-  //       Return only a JSON array of opportunity IDs, best match first.`
-  //   }]
-  // });
+  // import { GoogleGenerativeAI } from '@google/generative-ai';
+  // const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  // const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+  // const result = await model.generateContent(
+  //   `Given these opportunities: ${JSON.stringify(opportunities)},
+  //    rank the ones that best match this student's interests: "${interests}".
+  //    Return only a JSON array of opportunity IDs, best match first.`
+  // );
   // Keep this call server-side only (like it already is here) - never call
-  // Anthropic directly from the browser, or your API key would be exposed.
+  // Gemini directly from the browser, or your API key would be exposed.
+  // Free tier is ~15 requests/min and a few hundred-1000/day depending on
+  // model - our rate limiter above is tuned to stay under that ceiling.
 
   res.status(200).json({ results });
 }

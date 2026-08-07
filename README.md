@@ -14,8 +14,9 @@ Built for NextTech Kern 2026.
    run everything in `supabase/schema.sql`.
 
 3. Copy `.env.local.example` to `.env.local` and fill in your real keys
-   (Supabase URL/anon key from your project settings, Anthropic API key
-   from console.anthropic.com). `.env.local` is already in `.gitignore`,
+   (Supabase URL/anon key from your project settings, Gemini API key -
+   free tier - from aistudio.google.com/apikey). `.env.local` is already
+   in `.gitignore`,
    it will never get committed even though this repo is public.
 
 4. Add a few rows to the `opportunities` table in Supabase (Table Editor)
